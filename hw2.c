@@ -8,6 +8,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <limits.h>
+#include <string.h>
+#define MAXSTACK
 
 struct Type{
 	int type;
@@ -21,37 +25,45 @@ struct Type{
 	}value;
 };
 
-bool IsPrimitive(char **a){
-	int start = 1;
-	switch (start){
-		case 1:
-			if(a == "add"){
-				return true;
+void hw2(){
+	char buf[LINE_MAX];
+	bool state = true;
+	while(state){
+		printf("repl> ");
+		fgets(buf, sizeof buf, stdin);
+		if(buf != NULL){
+			size_t last = strlen(buf) - 1;
+			if(buf[last] == '\n'){
+				buf[last] = '\0';
 			}
-		case 2:
-			if(a == "div"){
-				return true;
-			}
-		case 3:
-			if(a == "mul"){
-				return true;
-			}
-		case 4:
-			if(a == "sub"){
-				return true;
-			}
-		case 5:
-			if(a == "rem"){
-				return true;
-			}
-		case 6:
-			if(a == "neg"){
-				return true;
-			}
-		default:
-			{
-				return false;
-			}
-	}
+		}
+		char *newline = "\n";
+		printf(buf);
+		printf(newline);
+		if(strcmp(buf, "quit") == 0){
+			exit(1);
+		}
+/*		if(a == "add"){
+			printf("hoorah");
+		}
+		if(a == "div"){
+			return true;
+		}
+		if(a == "mul"){
+			return true;
+		}
+		if(a == "sub"){
+			return true;
+		}
+		if(a == "rem"){
+			return true;
+		}
+		if(a == "neg"){
+			return true;
+		}
+*/	}
 }
-
+int main(){
+	hw2();
+	return 0;
+}
