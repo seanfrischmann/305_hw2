@@ -11,10 +11,18 @@
 #include <stdbool.h>
 #include <limits.h>
 #include <string.h>
-#define MAXSTACK
 
-struct Type{
-	int type;
+enum Types{
+	NUMBER,
+	BOOLEAN,
+	ERROR,
+	STRING,
+	NAME,
+	PRIMITIVE
+}Type;
+
+typedef struct node{
+	Type type;
 	union{
 		int number;
 		int boolean;
@@ -24,6 +32,20 @@ struct Type{
 		int primitive;
 	}value;
 };
+
+typedef struct stack{
+	struct node data_node;
+	struct stack *next;
+};
+
+struct stack* push(struct stack *head, struct node *input){
+	struct stack *temp;
+	temp->data_node->type = input->type;
+	temp->data_node->value = input->value;
+	temp->next = head;
+	head = temp;
+	return head;
+}
 
 void hw2(){
 	char buf[LINE_MAX];
