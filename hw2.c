@@ -27,7 +27,7 @@ typedef struct Data{
 	union{
 		int number;
 		bool boolean;
-		int error;
+		char* error;
 		char* string;
 		char* name;
 		char* primitive;
