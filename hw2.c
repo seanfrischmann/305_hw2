@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <limits.h>
 #include <string.h>
+#include <ctype.h>
 
 enum Types{
 	NUMBER,
@@ -21,35 +22,65 @@ enum Types{
 	PRIMITIVE
 }Type;
 
-typedef struct node{
-	Type type;
+typedef struct Data{
+	int type;
 	union{
 		int number;
-		int boolean;
+		bool boolean;
 		int error;
 		char* string;
 		char* name;
-		int primitive;
+		char* primitive;
 	}value;
 };
 
-typedef struct stack{
-	struct node data_node;
-	struct stack *next;
+typedef struct node{
+	struct Data data;
+	struct node *next;
 };
 
-struct stack* push(struct stack *head, struct node *input){
-	struct stack *temp;
-	temp->data_node->type = input->type;
-	temp->data_node->value = input->value;
+struct node* push(struct node *head, struct Data *input){
+	struct node *temp = (struct node*)malloc(sizeof(struct node));
+	temp->data = input;
 	temp->next = head;
-	head = temp;
+	return temp;
+}
+
+struct node* pop(struct node *head, struct Data *data){
+	struct node *temp = head;
+	*data = head->next;
+	head = head->next;
+	free(temp);
 	return head;
 }
 
+void display(struct node *head){
+	struct node *current;
+	current = head;
+	while(current != NULL){
+		if(current->data->type == 1){
+			printf("%d\n", current->data->value);
+		}else if(current->data->type == 2){
+			fputs(current->data->type ? "true" : "false", stdout);
+			printf("\n");
+		}else if(current->data->type == 3){
+			printf(":error:\n");
+		}else if(current->data->type == 6){
+			printf("%s\n", current->data->value);
+		}
+		current = current->next;
+	}
+}
+
 void hw2(){
+	int number = 1;
+	int boolean = 2;
+	int error = 3;
+	int primitive = 6;
 	char buf[LINE_MAX];
 	bool state = true;
+	struct node *head;
+	head = NULL;
 	while(state){
 		printf("repl> ");
 		fgets(buf, sizeof buf, stdin);
@@ -63,9 +94,30 @@ void hw2(){
 		printf(buf);
 		printf(newline);
 		if(strcmp(buf, "quit") == 0){
-			exit(1);
+			exit(0);
 		}
-/*		if(a == "add"){
+		int i;
+		char *input;
+		bool digit = false;
+		for(i=0; i< strlen(buf); i++){
+			if((buf[i] == ' ') || (buf[i] == '\0')){
+			}
+			if(isdigit(buf[0])){
+				if(isdigit(buf[i])){
+					digit = true;
+					input = input + buf[i];
+				}else{
+					struct Data *input;
+					input.type = 3;
+					input.value = ":error:";
+					head = push(head,input);
+					break;
+				}
+			}
+		}
+
+
+		if(strcmp(input,"add") == 0){
 			printf("hoorah");
 		}
 		if(a == "div"){
@@ -83,7 +135,7 @@ void hw2(){
 		if(a == "neg"){
 			return true;
 		}
-*/	}
+	}
 }
 int main(){
 	hw2();
