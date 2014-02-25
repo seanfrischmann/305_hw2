@@ -13,60 +13,51 @@
 #include <string.h>
 #include <ctype.h>
 
-enum Types{
-	NUMBER,
-	BOOLEAN,
-	ERROR,
-	STRING,
-	NAME,
-	PRIMITIVE
-}Type;
-
-typedef struct Data{
+typedef struct Data_storage{
 	int type;
 	union{
 		int number;
 		bool boolean;
-		char* error;
-		char* string;
-		char* name;
-		char* primitive;
+		int error;
+		int primitive;
 	}value;
-};
+}Data;
 
-typedef struct node{
-	struct Data data;
-	struct node *next;
-};
+char *primitives[] = {"add", "sub", "mul", "div", "rem", "neg"};
 
-struct node* push(struct node *head, struct Data *input){
-	struct node *temp = (struct node*)malloc(sizeof(struct node));
-	temp->data = input;
+typedef struct Node{
+	Data data;
+	struct Node *next;
+}node;
+
+node* push(node *head, Data *input){
+	node *temp = (node*)malloc(sizeof(node));
+	temp->data = *input;
 	temp->next = head;
 	return temp;
 }
 
-struct node* pop(struct node *head, struct Data *data){
-	struct node *temp = head;
-	*data = head->next;
+node* pop(node *head, Data *data){
+	node *temp = head;
+	*data = head->data;
 	head = head->next;
 	free(temp);
 	return head;
 }
 
-void display(struct node *head){
-	struct node *current;
+void display(node *head){
+	node *current;
 	current = head;
 	while(current != NULL){
-		if(current->data->type == 1){
-			printf("%d\n", current->data->value);
-		}else if(current->data->type == 2){
-			fputs(current->data->type ? "true" : "false", stdout);
+		if(current->data.type == 1){
+			printf("%d\n", current->data.value.number);
+		}else if(current->data.type == 2){
+			fputs(current->data.value.boolean ? ":true:" : ":false:", stdout);
 			printf("\n");
-		}else if(current->data->type == 3){
+		}else if(current->data.type == 3){
 			printf(":error:\n");
-		}else if(current->data->type == 6){
-			printf("%s\n", current->data->value);
+		}else if(current->data.type == 6){
+			printf("%s\n", primitives[current->data.value.primitive]);
 		}
 		current = current->next;
 	}
@@ -79,61 +70,105 @@ void hw2(){
 	int primitive = 6;
 	char buf[LINE_MAX];
 	bool state = true;
-	struct node *head;
-	head = NULL;
+	node stack;
+	node *head;
+	head = &stack;
 	while(state){
 		printf("repl> ");
 		fgets(buf, sizeof buf, stdin);
 		if(buf != NULL){
 			size_t last = strlen(buf) - 1;
 			if(buf[last] == '\n'){
-				buf[last] = '\0';
+				buf[last] = '@';
 			}
 		}
-		char *newline = "\n";
-		printf(buf);
-		printf(newline);
-		if(strcmp(buf, "quit") == 0){
+		if(strcmp(buf, "quit@") == 0){
 			exit(0);
 		}
-		int i;
-		char *input;
-		bool digit = false;
-		for(i=0; i< strlen(buf); i++){
-			if((buf[i] == ' ') || (buf[i] == '\0')){
+		size_t i;
+		char input[LINE_MAX];
+		int position = 0;
+		bool digit_bool = false;
+		bool error_bool = false;
+		size_t buf_len = strlen(buf);
+		for(i=0; i< buf_len; i++){
+			if((buf[i] == ' ') || (buf[i] == '@')){
+				Data data_input;
+				Data *input_data;
+				input_data = &data_input;
+				if(error_bool){
+					input_data->type = error;
+					input_data->value.error = 1;
+					head = push(head, input_data);
+					display(head);
+					break;
+				}
+				if(digit_bool){
+					int temp;
+					temp = atoi(input);
+					input_data->type = number;
+					input_data->value.number = temp;
+					head = push(head, input_data);
+					digit_bool = false;
+					position = 0;
+				}else if(strncmp(input, ":true:", position) == 0){
+					input_data->type = boolean;
+					input_data->value.boolean = true;
+					head = push(head, input_data);
+					position = 0;
+				}else if(strncmp(input, ":false:", position) == 0){
+					input_data->type = boolean;
+					input_data->value.boolean = false;
+					head = push(head, input_data);
+					position = 0;
+				}else if(strncmp(input, "add", position) == 0){
+					input_data->type = primitive;
+					input_data->value.primitive = 0;
+					head = push(head, input_data);
+					position = 0;
+				}else if(strncmp(input, "sub", position) == 0){
+					input_data->type = primitive;
+					input_data->value.primitive = 1;
+					head = push(head, input_data);
+					position = 0;
+				}else if(strncmp(input, "mul", position) == 0){
+					input_data->type = primitive;
+					input_data->value.primitive = 2;
+					head = push(head, input_data);
+					position = 0;
+				}else if(strncmp(input, "div", position) == 0){
+					input_data->type = primitive;
+					input_data->value.primitive = 3;
+					head = push(head, input_data);
+					position = 0;
+				}else if(strncmp(input, "rem", position) == 0){
+					input_data->type = primitive;
+					input_data->value.primitive = 4;
+					head = push(head, input_data);
+					position = 0;
+				}else if(strncmp(input, "neg", position) == 0){
+					input_data->type = primitive;
+					input_data->value.primitive = 5;
+					head = push(head, input_data);
+					position = 0;
+				}else{
+					input_data->type = error;
+					input_data->value.error = 1;
+					head = push(head, input_data);
+					display(head);
+					break;
+				}
+				i++;
+				display(head);
 			}
 			if(isdigit(buf[0])){
 				if(isdigit(buf[i])){
-					digit = true;
-					input = input + buf[i];
+					digit_bool = true;
 				}else{
-					struct Data *input;
-					input.type = 3;
-					input.value = ":error:";
-					head = push(head,input);
-					break;
+					error_bool = true;
 				}
 			}
-		}
-
-
-		if(strcmp(input,"add") == 0){
-			printf("hoorah");
-		}
-		if(a == "div"){
-			return true;
-		}
-		if(a == "mul"){
-			return true;
-		}
-		if(a == "sub"){
-			return true;
-		}
-		if(a == "rem"){
-			return true;
-		}
-		if(a == "neg"){
-			return true;
+			input[position++] = buf[i];
 		}
 	}
 }
