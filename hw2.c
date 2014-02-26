@@ -37,9 +37,9 @@ node* push(node *head, Data *input){
 	return temp;
 }
 
-node* pop(node *head, Data *data){
+node* pop(node *head, int *number){
 	node *temp = head;
-	*data = head->data;
+	*number = head->data.value.number;
 	head = head->next;
 	free(temp);
 	return head;
@@ -61,6 +61,18 @@ void display(node *head){
 		}
 		current = current->next;
 	}
+}
+
+bool numberCheck(node *head){
+	node *current = head;
+	if(current->data.type == 1){
+		if(current->next->data.type == 1){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	return false;
 }
 
 void hw2(){
@@ -88,86 +100,160 @@ void hw2(){
 		}
 		size_t i;
 		char input[LINE_MAX];
+		input[0] = 0;
 		int position = 0;
+		int pos_ck = 0;
 		bool digit_bool = false;
 		bool error_bool = false;
 		size_t buf_len = strlen(buf);
 		for(i=0; i< buf_len; i++){
 			if((buf[i] == ' ') || (buf[i] == '@')){
 				Data data_input;
-				Data *input_data;
-				input_data = &data_input;
+				Data *current_data;
+				current_data = &data_input;
+				int current_number;
+				int previous_number;
+				if(input[0] == 0){
+					error_bool = true;
+				}
 				if(error_bool){
-					input_data->type = error;
-					input_data->value.error = 1;
-					head = push(head, input_data);
-					display(head);
+					current_data->type = error;
+					current_data->value.error = 1;
+					head = push(head, current_data);
 					break;
 				}
 				if(digit_bool){
 					int temp;
-					temp = atoi(input);
-					input_data->type = number;
-					input_data->value.number = temp;
-					head = push(head, input_data);
+					temp = strtol(input, NULL, 0);
+					current_data->type = number;
+					current_data->value.number = temp;
+					head = push(head, current_data);
 					digit_bool = false;
+					pos_ck = i+1;
 					position = 0;
+					memset(&input[0], 0, sizeof(input));
 				}else if(strncmp(input, ":true:", position) == 0){
-					input_data->type = boolean;
-					input_data->value.boolean = true;
-					head = push(head, input_data);
+					current_data->type = boolean;
+					current_data->value.boolean = true;
+					head = push(head, current_data);
 					position = 0;
 				}else if(strncmp(input, ":false:", position) == 0){
-					input_data->type = boolean;
-					input_data->value.boolean = false;
-					head = push(head, input_data);
+					current_data->type = boolean;
+					current_data->value.boolean = false;
+					head = push(head, current_data);
 					position = 0;
 				}else if(strncmp(input, "add", position) == 0){
-					input_data->type = primitive;
-					input_data->value.primitive = 0;
-					head = push(head, input_data);
-					position = 0;
+					if(numberCheck(head)){
+						head = pop(head, &current_number);
+						head = pop(head, &previous_number);
+						current_number = current_number + previous_number;
+						current_data->type = number;
+						current_data->value.number = current_number;
+						head = push(head, current_data);
+						position = 0;
+					}else{
+						error_bool = true;
+					}
 				}else if(strncmp(input, "sub", position) == 0){
-					input_data->type = primitive;
-					input_data->value.primitive = 1;
-					head = push(head, input_data);
-					position = 0;
+					if(numberCheck(head)){
+						head = pop(head, &current_number);
+						head = pop(head, &previous_number);
+						current_number = previous_number - current_number;
+						current_data->type = number;
+						current_data->value.number = current_number;
+						head = push(head, current_data);
+						position = 0;
+					}else{
+						error_bool = true;
+					}
 				}else if(strncmp(input, "mul", position) == 0){
-					input_data->type = primitive;
-					input_data->value.primitive = 2;
-					head = push(head, input_data);
-					position = 0;
+					if(numberCheck(head)){
+						head = pop(head, &current_number);
+						head = pop(head, &previous_number);
+						current_number = previous_number * current_number;
+						current_data->type = number;
+						current_data->value.number = current_number;
+						head = push(head, current_data);
+						position = 0;
+					}else{
+						error_bool = true;
+					}
 				}else if(strncmp(input, "div", position) == 0){
-					input_data->type = primitive;
-					input_data->value.primitive = 3;
-					head = push(head, input_data);
-					position = 0;
+					if(numberCheck(head)){
+						head = pop(head, &current_number);
+						head = pop(head, &previous_number);
+						if((current_number > 0) && (previous_number < 0)){
+							current_number = previous_number / current_number;
+							current_number--;
+						}else if((current_number < 0) && (previous_number < 0)){
+							current_number = previous_number / current_number;
+							current_number++;
+						}else{
+							current_number = previous_number / current_number;
+						}
+						current_data->type = number;
+						current_data->value.number = current_number;
+						head = push(head, current_data);
+						position = 0;
+					}else{
+						error_bool = true;
+					}
 				}else if(strncmp(input, "rem", position) == 0){
-					input_data->type = primitive;
-					input_data->value.primitive = 4;
-					head = push(head, input_data);
-					position = 0;
+					if(numberCheck(head)){
+						head = pop(head, &current_number);
+						head = pop(head, &previous_number);
+						if((current_number > 0) && (previous_number < 0)){
+							int divisor = previous_number / current_number;
+							divisor--;
+							current_number = previous_number - (divisor*current_number);
+						}else if((current_number < 0) && (previous_number < 0)){
+							int divisor = previous_number / current_number;
+							divisor++;
+							current_number = previous_number - (divisor*current_number);
+						}else{
+							current_number = previous_number % current_number;
+						}
+						current_data->type = number;
+						current_data->value.number = current_number;
+						head = push(head, current_data);
+						position = 0;
+					}else{
+						error_bool = true;
+					}
 				}else if(strncmp(input, "neg", position) == 0){
-					input_data->type = primitive;
-					input_data->value.primitive = 5;
-					head = push(head, input_data);
-					position = 0;
-				}else{
-					input_data->type = error;
-					input_data->value.error = 1;
-					head = push(head, input_data);
+					if(head->data.type == 1){
+						head = pop(head, &current_number);
+						current_number = current_number*(-1);
+						current_data->type = number;
+						current_data->value.number = current_number;
+						head = push(head, current_data);
+						position = 0;
+					}else{
+						error_bool = true;
+					}
+				}
+				if (error_bool){
+					current_data->type = error;
+					current_data->value.error = 1;
+					head = push(head, current_data);
 					display(head);
 					break;
 				}
+				if(buf[i] == '@'){
+					display(head);
+				}
 				i++;
-				display(head);
 			}
-			if(isdigit(buf[0])){
+			if(isdigit(buf[pos_ck])){
 				if(isdigit(buf[i])){
 					digit_bool = true;
 				}else{
 					error_bool = true;
 				}
+			}
+			if(buf[pos_ck] == '-'){
+				pos_ck = pos_ck + 1;
+				
 			}
 			input[position++] = buf[i];
 		}
