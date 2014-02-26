@@ -120,6 +120,7 @@ void hw2(){
 					current_data->type = error;
 					current_data->value.error = 1;
 					head = push(head, current_data);
+					display(head);
 					break;
 				}
 				if(digit_bool){
@@ -231,6 +232,8 @@ void hw2(){
 					}else{
 						error_bool = true;
 					}
+				}else{
+					error_bool = true;
 				}
 				if (error_bool){
 					current_data->type = error;
