@@ -82,9 +82,7 @@ void hw2(){
 	int primitive = 6;
 	char buf[LINE_MAX];
 	bool state = true;
-	//node stack;
 	node *head;
-	//head = &stack;
 	head = NULL;
 	while(state){
 		printf("repl> ");
