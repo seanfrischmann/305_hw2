@@ -65,6 +65,9 @@ void display(node *head){
 
 bool numberCheck(node *head){
 	node *current = head;
+	if((current == NULL) || (current->next == NULL)){
+		return false;
+	}
 	if(current->data.type == 1){
 		if(current->next->data.type == 1){
 			return true;
@@ -226,6 +229,29 @@ void hw2(){
 						current_data->type = number;
 						current_data->value.number = current_number;
 						head = push(head, current_data);
+						position = 0;
+					}else{
+						error_bool = true;
+					}
+				}else if(strncmp(input, "pop", position) == 0){
+					if(head == NULL){
+						error_bool = true;
+					}else{
+						int junk;
+						head = pop(head, &junk);
+						position = 0;
+					}
+				}else if(strncmp(input, "exn", position) == 0){
+					if((head != NULL) && (head->next != NULL)){
+						int junk;
+						node *store_previous = malloc(sizeof(node));
+						node *store_current = malloc(sizeof(node));
+						memcpy(store_current, head, sizeof(node));
+						memcpy(store_previous, head->next, sizeof(node));
+						head = pop(head, &junk);
+						head = pop(head, &junk);
+						head = push(head, &store_current->data);
+						head = push(head, &store_previous->data);
 						position = 0;
 					}else{
 						error_bool = true;
